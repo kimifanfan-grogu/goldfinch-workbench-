@@ -42,7 +42,10 @@
         </button>
         <button type="submit">收入匣 <span>↵</span></button>
       </form>
-      <span id="voice-status" class="voice-status" aria-live="polite">点击“开始语音”，说完后再次点击即可录入。</span>
+      <div class="voice-feedback">
+        <span id="voice-status" class="voice-status" aria-live="polite">点击“开始语音”，说完后再次点击即可录入。</span>
+        <button id="system-dictation" class="dictation-btn" type="button">改用系统听写</button>
+      </div>
       <div class="inbox-meta"><span><b id="inbox-count">0</b> 条待整理</span><span>每日 00:00 自动收尾 · Ctrl / ⌘ + K</span></div>
       <div id="inbox" class="inbox-list" aria-live="polite"></div>
     </section>
