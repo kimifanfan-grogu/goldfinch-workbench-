@@ -1,0 +1,16 @@
+{
+  "id": "goldfinch-workbench",
+  "name": "金雀工作台",
+  "short_name": "金雀工作台",
+  "description": "巴洛克风任务、时间管理与每日确认工作台",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#efe5d2",
+  "theme_color": "#17120f",
+  "icons": [
+    {"src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}
+  ]
+}
