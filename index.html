@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#17120f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="金雀工作台" />
+  <title>金雀工作台</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="./icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <header class="topbar">
+    <div class="brand">
+      <div class="crest" aria-hidden="true">♜</div>
+      <div><p class="eyebrow">ATELIER OF TIME</p><h1>金雀工作台</h1></div>
+    </div>
+    <div class="top-actions"><button id="install-app" class="install-btn" type="button">安装 APP</button><div class="date-block"><span id="date"></span><strong id="time"></strong></div></div>
+  </header>
+
+  <main>
+    <section class="capture panel">
+      <div class="section-label"><span>01</span><p>灵感速记</p></div>
+      <div class="capture-copy">
+        <p class="kicker">此刻想到什么？</p>
+        <h2>先收下念头，<em>稍后再决定。</em></h2>
+      </div>
+      <form id="capture-form" class="capture-form">
+        <label class="sr-only" for="task-input">记录想法或待办</label>
+        <input id="task-input" maxlength="100" autocomplete="off" placeholder="写下一个念头、任务或提醒…" />
+        <button id="voice-input" class="voice-btn" type="button" aria-label="语音输入" title="语音输入">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.4a3.4 3.4 0 0 0 3.4-3.4V6a3.4 3.4 0 1 0-6.8 0v6a3.4 3.4 0 0 0 3.4 3.4Zm-6-3.8a6 6 0 0 0 12 0M12 17.7V21M9 21h6"/></svg>
+        </button>
+        <button type="submit">收入匣 <span>↵</span></button>
+      </form>
+      <span id="voice-status" class="sr-only" aria-live="polite"></span>
+      <div class="inbox-meta"><span><b id="inbox-count">0</b> 条待整理</span><span>每日 00:00 自动收尾 · Ctrl / ⌘ + K</span></div>
+      <div id="inbox" class="inbox-list" aria-live="polite"></div>
+    </section>
+
+    <section class="workspace-grid">
+      <section class="matrix panel">
+        <div class="panel-heading">
+          <div><p class="kicker">决策画布</p><h2>时间管理四象限</h2></div>
+          <p class="hint">将收入匣卡片拖入象限，或点击＋分类</p>
+        </div>
+        <div class="axis axis-top"><span>不紧急</span><span>紧急</span></div>
+        <div class="quadrants">
+          <article class="quadrant q2" data-zone="q2"><div class="q-head"><span>II</span><div><h3>重要 · 不紧急</h3><p>安排时间，持续推进</p></div></div><div class="task-list" data-list="q2"></div></article>
+          <article class="quadrant q1" data-zone="q1"><div class="q-head"><span>I</span><div><h3>重要 · 紧急</h3><p>现在就做</p></div></div><div class="task-list" data-list="q1"></div></article>
+          <article class="quadrant q4" data-zone="q4"><div class="q-head"><span>IV</span><div><h3>不重要 · 不紧急</h3><p>减少或放弃</p></div></div><div class="task-list" data-list="q4"></div></article>
+          <article class="quadrant q3" data-zone="q3"><div class="q-head"><span>III</span><div><h3>不重要 · 紧急</h3><p>委托或限时处理</p></div></div><div class="task-list" data-list="q3"></div></article>
+        </div>
+      </section>
+
+      <aside class="side-stack">
+        <section class="timer panel">
+          <div class="section-label small"><span>02</span><p>专注时钟</p></div>
+          <div class="timer-ring" id="timer-ring">
+            <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="track" cx="60" cy="60" r="54"/><circle id="progress" class="progress" cx="60" cy="60" r="54"/></svg>
+            <div class="timer-face"><span id="timer-mode">专注</span><strong id="timer-display">25:00</strong><small>MINUTES</small></div>
+          </div>
+          <div class="timer-actions"><button id="timer-toggle" class="primary">开始专注</button><button id="timer-reset" class="icon-btn" aria-label="重置计时器">↻</button></div>
+          <p class="timer-note">每 25 分钟，钟声会提醒你休息 5 分钟。</p>
+        </section>
+
+        <section class="flash panel">
+          <div class="section-label small"><span>03</span><p>每日确认</p></div>
+          <div class="flashcard" id="flashcard">
+            <p class="kicker">TODAY'S CARD</p>
+            <p id="flash-text">收入匣中暂时没有无法分类的念头。</p>
+            <div class="flash-actions"><button id="flash-delete" class="danger-text">删除此卡</button><button id="flash-done">今日确认</button><button id="flash-next" aria-label="下一张">→</button></div>
+          </div>
+          <div class="flash-progress"><span id="flash-index">0 / 0</span><div><i id="flash-progress"></i></div></div>
+        </section>
+      </aside>
+    </section>
+
+    <section class="schedule panel">
+      <div class="schedule-heading">
+        <div class="section-label small"><span>04</span><p>个人时间表</p></div>
+        <div><p class="kicker">PERSONAL AGENDA</p><h2>把重要的事，放进真实的时间里</h2></div>
+        <div class="schedule-summary"><strong id="planned-count">0</strong><span>个专注时段</span><i></i><strong id="planned-minutes">0</strong><span>分钟</span></div>
+      </div>
+      <div id="schedule-list" class="schedule-list"></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status"></div>
+  <dialog id="plan-dialog" class="plan-dialog">
+    <form id="plan-form" method="dialog">
+      <div class="dialog-ornament">✦</div>
+      <p class="kicker">TASK COMPOSITION</p>
+      <h2>为任务留出时间</h2>
+      <p id="plan-task-name" class="plan-task-name"></p>
+      <div class="plan-zone"><span>归入象限</span><strong id="plan-zone-name"></strong></div>
+      <div class="plan-fields">
+        <label><span>拆分次数</span><div class="number-field"><input id="plan-sessions" type="number" min="1" max="20" value="1" required><em>次</em></div></label>
+        <label><span>每次时长</span><div class="number-field"><input id="plan-duration" type="number" min="5" max="480" step="5" value="25" required><em>分钟</em></div></label>
+        <label><span>首次日期</span><input id="plan-date" type="date" required></label>
+        <label><span>开始时间</span><input id="plan-time" type="time" value="09:00" required></label>
+        <label class="wide"><span>安排节奏</span><select id="plan-cadence"><option value="daily">每天一次</option><option value="weekdays">仅工作日</option><option value="alternate">每两天一次</option><option value="same-day">同一天连续安排</option></select></label>
+      </div>
+      <p class="plan-preview" id="plan-preview"></p>
+      <div class="dialog-actions"><button type="button" id="plan-cancel">暂不分类</button><button type="submit" class="primary">加入象限并排期</button></div>
+    </form>
+  </dialog>
+  <template id="task-template">
+    <div class="task-card"><button class="check" aria-label="完成任务"></button><div class="task-main"><span class="task-text"></span><small class="task-plan"></small></div><button class="delete-task" aria-label="删除任务">×</button><button class="move" aria-label="移动任务">···</button><div class="move-menu"></div></div>
+  </template>
+  <script src="./app.js"></script>
+</body>
+</html>
