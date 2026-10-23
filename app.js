@@ -51,18 +51,24 @@ function renderSchedule(){const root=$('#schedule-list');root.innerHTML='';const
 let flashCursor=0;
 function renderFlash(){const total=state.flash.length;flashCursor=Math.min(flashCursor,Math.max(0,total-1));$('#flash-text').textContent=total?state.flash[flashCursor].text:'收入匣中暂时没有无法分类的念头。';$('#flash-index').textContent=`${total?flashCursor+1:0} / ${total}`;$('#flash-progress').style.width=total?`${((flashCursor+1)/total)*100}%`:'0%';$('#flash-done').disabled=!total;$('#flash-delete').disabled=!total}
 function renderAll(){renderInbox();renderTasks();renderFlash();renderSchedule()}
-$('#capture-form').onsubmit=(e)=>{e.preventDefault();const input=$('#task-input');const text=input.value.trim();if(!text)return;state.inbox.unshift({id:crypto.randomUUID(),text,createdAt:Date.now()});input.value='';save();renderInbox();toast('已收入，稍后再整理')};
+function addInboxItem(text,message='已收入，稍后再整理'){const clean=text.trim();if(!clean)return false;state.inbox.unshift({id:crypto.randomUUID(),text:clean,createdAt:Date.now()});$('#task-input').value='';save();renderInbox();toast(message);return true}
+$('#capture-form').onsubmit=(e)=>{e.preventDefault();addInboxItem($('#task-input').value)};
 const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-let recognition=null,voiceBase='',isListening=false;
-function setListening(value){isListening=value;$('#voice-input').classList.toggle('listening',value);$('#voice-input').setAttribute('aria-label',value?'停止语音输入':'语音输入');$('#voice-status').textContent=value?'正在聆听，请说出念头、任务或提醒':'语音输入已停止'}
+let recognition=null,voiceBase='',voiceFinal='',voiceInterim='',isListening=false,voiceStopRequested=false,voiceFatalError=false,voiceHeardSpeech=false;
+function setListening(value,status){isListening=value;const button=$('#voice-input');button.classList.toggle('listening',value);button.disabled=false;button.setAttribute('aria-label',value?'结束语音并录入':'开始语音录入');button.title=value?'再次点击，结束并直接收入匣':'点击开始语音录入，再次点击结束并保存';$('.voice-label',button).textContent=value?'结束并录入':'开始语音';$('#voice-status').textContent=status||(value?'正在聆听，请说出念头、任务或提醒':'语音输入已停止')}
+function updateVoiceDraft(){const text=[voiceBase,voiceFinal.trim(),voiceInterim.trim()].filter(Boolean).join(' ');$('#task-input').value=text}
+function finishVoiceCapture(){const text=$('#task-input').value.trim(),shouldSave=voiceHeardSpeech&&text;recognition=null;voiceStopRequested=false;voiceFatalError=false;voiceHeardSpeech=false;voiceFinal='';voiceInterim='';setListening(false,shouldSave?'语音内容已录入收入匣':'语音输入已停止');if(shouldSave)addInboxItem(text,'语音内容已直接收入匣');else $('#task-input').focus()}
+function startRecognitionCycle(){if(!recognition||voiceStopRequested||voiceFatalError)return;try{recognition.start()}catch{voiceFatalError=true;finishVoiceCapture();toast('语音识别启动失败，请稍后重试')}}
 $('#voice-input').onclick=()=>{
   if(!SpeechRecognition){toast('此浏览器不支持语音识别，请使用手机键盘听写');return}
-  if(isListening){recognition.stop();return}
-  recognition=new SpeechRecognition();recognition.lang='zh-CN';recognition.continuous=false;recognition.interimResults=true;voiceBase=$('#task-input').value.trim();
-  recognition.onstart=()=>{setListening(true);toast('正在聆听…')};
-  recognition.onresult=(event)=>{let words='';for(let i=event.resultIndex;i<event.results.length;i++)words+=event.results[i][0].transcript;$('#task-input').value=[voiceBase,words.trim()].filter(Boolean).join(' ')};
-  recognition.onerror=(event)=>{const messages={not_allowed:'请允许麦克风权限后重试','no-speech':'没有听到声音，请再试一次','audio-capture':'未找到可用麦克风'};toast(messages[event.error]||'语音识别暂时不可用')};
-  recognition.onend=()=>{setListening(false);$('#task-input').focus()};recognition.start();
+  if(isListening){voiceStopRequested=true;$('#voice-input').disabled=true;$('#voice-status').textContent='正在结束并保存语音内容';try{recognition.stop()}catch{finishVoiceCapture()}return}
+  voiceBase=$('#task-input').value.trim();voiceFinal='';voiceInterim='';voiceStopRequested=false;voiceFatalError=false;voiceHeardSpeech=false;
+  recognition=new SpeechRecognition();recognition.lang='zh-CN';recognition.continuous=true;recognition.interimResults=true;recognition.maxAlternatives=1;
+  recognition.onstart=()=>{setListening(true);toast('正在聆听，再点一次即可结束并录入')};
+  recognition.onresult=(event)=>{voiceInterim='';for(let i=event.resultIndex;i<event.results.length;i++){const words=event.results[i][0].transcript;if(event.results[i].isFinal){voiceFinal+=words;voiceHeardSpeech=true}else voiceInterim+=words}updateVoiceDraft()};
+  recognition.onerror=(event)=>{const messages={'not-allowed':'请允许麦克风权限后重试','service-not-allowed':'浏览器阻止了语音识别','no-speech':'暂时没听清，我会继续聆听','audio-capture':'未找到可用麦克风','network':'语音服务网络连接失败'};const fatal=['not-allowed','service-not-allowed','audio-capture','network'].includes(event.error);voiceFatalError=fatal;if(fatal)voiceStopRequested=true;toast(messages[event.error]||'语音识别暂时不可用')};
+  recognition.onend=()=>{if(isListening&&!voiceStopRequested&&!voiceFatalError){setTimeout(startRecognitionCycle,180);return}finishVoiceCapture()};
+  setListening(true,'正在启动语音识别');startRecognitionCycle();
 };
 let installPrompt=null;
 window.addEventListener('beforeinstallprompt',(event)=>{event.preventDefault();installPrompt=event;$('#install-app').classList.add('ready')});
